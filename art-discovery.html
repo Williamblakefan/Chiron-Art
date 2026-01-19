@@ -1,0 +1,3386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiron - Public Domain Art Discovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141416;
+            --bg-tertiary: #1c1c1f;
+            --bg-card: #18181b;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #c9a227;
+            --accent-hover: #d4af37;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --heart-active: #ef4444;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        :root.light {
+            --bg-primary: #fafafa;
+            --bg-secondary: #f4f4f5;
+            --bg-tertiary: #e4e4e7;
+            --bg-card: #ffffff;
+            --text-primary: #18181b;
+            --text-secondary: #52525b;
+            --text-muted: #71717a;
+            --accent: #b8960f;
+            --accent-hover: #9a7d0a;
+            --border: #e4e4e7;
+            --border-light: #d4d4d8;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .logo-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.7rem;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            margin-top: -2px;
+        }
+
+        /* Navigation Tabs */
+        nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.625rem 1.25rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+
+        .saved-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            margin-left: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-radius: 9px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--border-light);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-secondary);
+            transition: fill var(--transition);
+        }
+
+        .theme-toggle:hover svg {
+            fill: var(--text-primary);
+        }
+
+        /* Main Content */
+        main {
+            padding-top: 80px;
+            min-height: 100vh;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Search Panel */
+        .search-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .search-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            transition: all var(--transition);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            fill: var(--text-muted);
+        }
+
+        .filter-select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 2.5rem 0.875rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371717a'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 20px;
+            transition: all var(--transition);
+            min-width: 160px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--bg-primary);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .search-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .clear-btn:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        /* Art Grid */
+        .art-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1200px) {
+            .art-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Tile */
+        .tile {
+            perspective: 1000px;
+            height: 380px;
+        }
+
+        .tile-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .tile.flipped .tile-inner {
+            transform: rotateY(180deg);
+        }
+
+        .tile-front,
+        .tile-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .tile-front {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+
+        .tile-back {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tile Front */
+        .tile-image-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .tile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .tile:hover .tile-image {
+            transform: scale(1.03);
+        }
+
+        .tile-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 1rem 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .tile:hover .tile-overlay {
+            opacity: 1;
+        }
+
+        .tile-title-preview {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #fff;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .tile-artist-preview {
+            font-size: 0.8125rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 0.25rem;
+        }
+
+        /* Tile Action Buttons */
+        .tile-actions {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .tile-action-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all var(--transition);
+        }
+
+        .tile:hover .tile-action-btn,
+        .save-btn.saved {
+            opacity: 1;
+        }
+
+        .tile-action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: transparent;
+            stroke: #fff;
+            stroke-width: 2;
+            transition: all var(--transition);
+        }
+
+        .save-btn.saved svg {
+            fill: var(--heart-active);
+            stroke: var(--heart-active);
+        }
+
+        .tile-action-btn:hover {
+            transform: scale(1.1);
+            background: rgba(0,0,0,0.7);
+        }
+
+        .download-btn svg {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+
+        .download-btn:hover svg {
+            stroke: var(--accent);
+        }
+
+        .download-btn.downloading {
+            pointer-events: none;
+        }
+
+        .download-btn.downloading svg {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Source Badge - Clickable Link */
+        .source-badge {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #fff;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity var(--transition), background var(--transition);
+            text-decoration: none;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .source-badge:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .tile:hover .source-badge {
+            opacity: 1;
+        }
+
+        /* Tile Back - Placard */
+        .placard {
+            padding: 1.25rem;
+            overflow-y: auto;
+            height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .placard::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .placard::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .placard::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .placard-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.125rem;
+            font-weight: 500;
+            line-height: 1.3;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .placard-artist {
+            font-size: 0.9375rem;
+            color: var(--accent);
+            margin-bottom: 0.125rem;
+        }
+
+        .placard-artist-dates {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .placard-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.875rem 0;
+        }
+
+        .placard-field {
+            margin-bottom: 0.625rem;
+        }
+
+        .placard-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.125rem;
+        }
+
+        .placard-value {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .placard-description {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .placard-source {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition);
+            margin-top: 0.5rem;
+        }
+
+        .placard-source:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .placard-source svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        /* Loading States */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            fill: var(--text-muted);
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            max-width: 400px;
+        }
+
+        /* Scroll Loading Indicator - Enhanced */
+        .scroll-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 2rem;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .scroll-loading-phrase {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-primary);
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .scroll-loading-dots {
+            display: inline-flex;
+            gap: 2px;
+        }
+
+        .scroll-loading-dots span {
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: loading-dot 1.4s ease-in-out infinite;
+        }
+
+        .scroll-loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .scroll-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .scroll-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes loading-dot {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .scroll-loading-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .scroll-loading-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scroll-loading-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .scroll-loading-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: loading-shimmer 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading-shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .scroll-loading-bar-glow {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+            animation: loading-glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes loading-glow {
+            0% {
+                opacity: 0.6;
+                box-shadow: 0 0 5px var(--accent), 0 0 10px var(--accent);
+            }
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+            }
+        }
+
+        .scroll-loading-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Buffer Indicator */
+        .buffer-indicator {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.7;
+            transition: opacity var(--transition);
+            z-index: 50;
+        }
+
+        .buffer-indicator:hover {
+            opacity: 1;
+        }
+
+        .buffer-indicator .buffer-bar {
+            width: 60px;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .buffer-indicator .buffer-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .buffer-indicator.fetching .buffer-fill {
+            animation: buffer-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes buffer-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            color: #fca5a5;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Status Text */
+        .status-text {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.875rem;
+                font-size: 0.8125rem;
+            }
+
+            .tab-content {
+                padding: 1rem;
+            }
+
+            .search-panel {
+                padding: 1rem;
+            }
+
+            .search-row {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .art-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+
+            .tile {
+                height: 280px;
+            }
+
+            .tile-action-btn {
+                opacity: 1;
+            }
+
+            .source-badge {
+                opacity: 1;
+            }
+
+            .tile-overlay {
+                opacity: 1;
+            }
+
+            .placard {
+                padding: 1rem;
+            }
+
+            .placard-title {
+                font-size: 1rem;
+            }
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 12px;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-tile {
+            height: 380px;
+        }
+
+        @media (max-width: 768px) {
+            .skeleton-tile {
+                height: 280px;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            box-shadow: 0 10px 40px var(--shadow);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo-container">
+                <div class="logo">Chiron<span>.</span></div>
+                <div class="logo-subtitle">φύσις κρύπτεσθαι φιλεῖ</div>
+            </div>
+            <nav>
+                <button class="tab-btn active" data-tab="explore">Explore</button>
+                <button class="tab-btn" data-tab="search">Search</button>
+            </nav>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <svg class="sun-icon" viewBox="0 0 24 24" style="display: none;">
+                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+                </svg>
+                <svg class="moon-icon" viewBox="0 0 24 24">
+                    <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Explore Tab -->
+        <section class="tab-content active" id="exploreTab">
+            <div class="art-grid" id="exploreGrid"></div>
+            <div class="loading-container" id="exploreLoading" style="display: none;">
+                <div class="spinner"></div>
+                <div class="loading-text">Discovering masterpieces...</div>
+            </div>
+            <div class="scroll-loading" id="exploreScrollLoading" style="display: none;">
+                <div class="scroll-loading-phrase">
+                    <span id="exploreLoadingPhrase">The gallery doors are opening</span>
+                    <div class="scroll-loading-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+                <div class="scroll-loading-bar-container">
+                    <div class="scroll-loading-bar">
+                        <div class="scroll-loading-bar-fill" id="exploreScrollBarFill" style="width: 0%">
+                            <div class="scroll-loading-bar-glow"></div>
+                        </div>
+                    </div>
+                    <span class="scroll-loading-count"><span id="exploreScrollCount">0</span> preloaded</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Tab -->
+        <section class="tab-content" id="searchTab">
+            <div class="search-panel">
+                <div class="search-row">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search artworks... (e.g., ocean, portrait, landscape)">
+                    </div>
+                </div>
+                <div class="search-row">
+                    <select class="filter-select" id="mediumFilter">
+                        <option value="">All Mediums</option>
+                        <option value="paintings">Paintings</option>
+                        <option value="drawings">Drawings</option>
+                        <option value="prints">Prints</option>
+                        <option value="etchings">Etchings</option>
+                        <option value="woodcuts">Woodcuts & Woodblock Prints</option>
+                        <option value="watercolors">Watercolors</option>
+                        <option value="photographs">Photographs (Met only)</option>
+                    </select>
+                    <select class="filter-select" id="periodFilter">
+                        <option value="">All Time Periods</option>
+                        <option value="ancient">Ancient (Before 500 CE)</option>
+                        <option value="medieval">Medieval (500-1400)</option>
+                        <option value="15th">15th Century</option>
+                        <option value="16th">16th Century</option>
+                        <option value="17th">17th Century</option>
+                        <option value="18th">18th Century</option>
+                        <option value="19th">19th Century</option>
+                        <option value="20th">20th Century</option>
+                    </select>
+                    <select class="filter-select" id="styleFilter">
+                        <option value="">All Styles</option>
+                        <option value="impressionism">Impressionism</option>
+                        <option value="baroque">Baroque</option>
+                        <option value="renaissance">Renaissance</option>
+                        <option value="romanticism">Romanticism</option>
+                        <option value="realism">Realism</option>
+                        <option value="japanese">Japanese Art</option>
+                        <option value="chinese">Chinese Art</option>
+                        <option value="european">European Art</option>
+                    </select>
+                    <select class="filter-select" id="sourceFilter">
+                        <option value="">All Sources</option>
+                        <option value="met">Metropolitan Museum</option>
+                        <option value="aic">Art Institute of Chicago</option>
+                        <option value="cleveland">Cleveland Museum of Art</option>
+                        <option value="wikimedia">Wikimedia Commons</option>
+                    </select>
+                </div>
+                <div class="search-row">
+                    <button class="search-btn" id="searchBtn">Search</button>
+                    <button class="clear-btn" id="clearBtn">Clear Filters</button>
+                </div>
+            </div>
+            <div class="status-text" id="searchStatus"></div>
+            <div class="error-message" id="searchError" style="display: none;"></div>
+            <div class="art-grid" id="searchGrid"></div>
+            <div class="loading-container" id="searchLoading" style="display: none;">
+                <div class="spinner"></div>
+                <div class="loading-text">Searching collections...</div>
+            </div>
+            <div class="empty-state" id="searchEmpty" style="display: none;">
+                <svg class="empty-icon" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                <h3 class="empty-title">No artworks found</h3>
+                <p class="empty-text">Try adjusting your search terms or filters to discover more masterpieces.</p>
+            </div>
+            <div class="scroll-loading" id="searchScrollLoading" style="display: none;">
+                <div class="scroll-loading-phrase">
+                    <span id="searchLoadingPhrase">The gallery doors are opening</span>
+                    <div class="scroll-loading-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+                <div class="scroll-loading-bar-container">
+                    <div class="scroll-loading-bar">
+                        <div class="scroll-loading-bar-fill" id="searchScrollBarFill" style="width: 0%">
+                            <div class="scroll-loading-bar-glow"></div>
+                        </div>
+                    </div>
+                    <span class="scroll-loading-count"><span id="searchScrollCount">0</span> preloaded</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Buffer indicator -->
+    <div class="buffer-indicator" id="bufferIndicator" style="display: none;">
+        <span id="bufferCount">0</span> preloaded
+        <div class="buffer-bar">
+            <div class="buffer-fill" id="bufferFill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== State Management =====
+        const state = {
+            currentTab: 'explore',
+            exploreArtworks: [],      // Currently displayed artworks
+            exploreBuffer: [],        // Pre-fetched artworks ready to display
+            searchArtworks: [],
+            searchBuffer: [],
+            isLoading: false,
+            isFetchingBuffer: false,  // Background fetching in progress
+            metOffset: 0,
+            wikimediaOffset: 0,
+            searchMetOffset: 0,
+            searchWikimediaOffset: 0,
+            seenIds: new Set(),
+            searchSeenIds: new Set(),
+            darkMode: true,
+            currentSearchQuery: '',
+            currentSearchFilters: {},
+            bufferTarget: 80,         // Buffer target with rate limit protection
+            displayBatchSize: 16      // How many to show at once when scrolling
+        };
+
+        // ===== Constants =====
+        const MET_API_BASE = 'https://collectionapi.metmuseum.org/public/collection/v1';
+        const WIKIMEDIA_API_BASE = 'https://commons.wikimedia.org/w/api.php';
+        const AIC_API_BASE = 'https://api.artic.edu/api/v1'; // Art Institute of Chicago
+        const AIC_IMAGE_BASE = 'https://www.artic.edu/iiif/2';
+        const CLEVELAND_API_BASE = 'https://openaccess-api.clevelandart.org/api'; // Cleveland Museum of Art
+        const BATCH_SIZE = 30; // Larger batches for smoother scrolling
+
+        // ===== Rate Limit Protection =====
+        const PARALLEL_REQUESTS = 8; // Max parallel requests
+        const BATCH_DELAY_MS = 200; // Delay between batches
+        const CACHE_PREFIX = 'chiron_cache_';
+        const CACHE_EXPIRY_HOURS = 24; // Cache expires after 24 hours
+        let currentBackoffMs = 0; // Current backoff delay (exponential)
+        const MAX_BACKOFF_MS = 8000; // Max 8 second backoff
+
+        // Track API availability for fallback
+        const apiAvailability = {
+            met: true,
+            aic: true,      // Art Institute of Chicago
+            cleveland: true, // Cleveland Museum of Art
+            wikimedia: true
+        };
+
+        // LocalStorage cache helpers
+        function getCachedData(key) {
+            try {
+                const cached = localStorage.getItem(CACHE_PREFIX + key);
+                if (!cached) return null;
+
+                const { data, timestamp } = JSON.parse(cached);
+                const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+
+                if (ageHours > CACHE_EXPIRY_HOURS) {
+                    localStorage.removeItem(CACHE_PREFIX + key);
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setCachedData(key, data) {
+            try {
+                const cacheEntry = {
+                    data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(cacheEntry));
+            } catch (e) {
+                // LocalStorage might be full - clear old cache entries
+                clearOldCache();
+                try {
+                    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ data, timestamp: Date.now() }));
+                } catch (e2) {
+                    // Still failed, ignore
+                }
+            }
+        }
+
+        function clearOldCache() {
+            try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(CACHE_PREFIX)) {
+                        try {
+                            const { timestamp } = JSON.parse(localStorage.getItem(key));
+                            const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+                            if (ageHours > CACHE_EXPIRY_HOURS) {
+                                keysToRemove.push(key);
+                            }
+                        } catch (e) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+            } catch (e) {
+                // Ignore errors
+            }
+        }
+
+        // Fetch with exponential backoff and caching
+        async function fetchWithBackoff(url, cacheKey = null) {
+            // Check cache first
+            if (cacheKey) {
+                const cached = getCachedData(cacheKey);
+                if (cached) {
+                    return cached;
+                }
+            }
+
+            // Apply current backoff if any
+            if (currentBackoffMs > 0) {
+                await new Promise(r => setTimeout(r, currentBackoffMs));
+            }
+
+            let lastError;
+            let backoff = 2000; // Start with 2 seconds
+
+            for (let attempt = 0; attempt < 4; attempt++) {
+                try {
+                    const response = await fetch(url);
+
+                    if (response.status === 429) {
+                        // Rate limited - apply exponential backoff
+                        console.warn(`Rate limited, backing off for ${backoff}ms`);
+                        currentBackoffMs = Math.min(backoff, MAX_BACKOFF_MS);
+                        await new Promise(r => setTimeout(r, backoff));
+                        backoff *= 2; // Double for next attempt
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    // Success - reset backoff and cache result
+                    currentBackoffMs = Math.max(0, currentBackoffMs - 500); // Gradually reduce backoff
+                    const data = await response.json();
+
+                    if (cacheKey) {
+                        setCachedData(cacheKey, data);
+                    }
+
+                    return data;
+                } catch (error) {
+                    lastError = error;
+                    if (attempt < 3) {
+                        await new Promise(r => setTimeout(r, backoff));
+                        backoff *= 2;
+                    }
+                }
+            }
+
+            throw lastError || new Error('Fetch failed after retries');
+        }
+
+        // Delay helper
+        function delay(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        // Loading phrases for the scroll indicator
+        const LOADING_PHRASES = [
+            "The gallery doors are opening",
+            "Nature likes to hide... but not for long",
+            "Dusting off the collection",
+            "The muses are gathering",
+            "Summoning beauty from the archives",
+            "The ancients await your gaze",
+            "Canvases unfurling",
+            "Pigments blending",
+            "Shadows giving way to form",
+            "Treasures surfacing"
+        ];
+
+        let lastLoadingPhrase = '';
+
+        function getRandomLoadingPhrase() {
+            // Get a different phrase than last time
+            const availablePhrases = LOADING_PHRASES.filter(p => p !== lastLoadingPhrase);
+            const phrase = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+            lastLoadingPhrase = phrase;
+            return phrase;
+        }
+
+        // Fine art department IDs from Met Museum (excludes Modern Art to reduce contemporary pieces)
+        const MET_DEPARTMENTS = [
+            11, // European Paintings
+            9,  // Drawings and Prints
+            6,  // Asian Art
+            14, // Islamic Art
+            3,  // Ancient Near Eastern Art
+            5,  // Arts of Africa, Oceania, and the Americas
+            15, // Medieval Art
+            17, // Photographs - Met's curated photography collection
+            // 21, // Modern Art - excluded to reduce contemporary pieces
+        ];
+
+        // Medium mappings for search
+        const MEDIUM_KEYWORDS = {
+            'paintings': ['painting', 'oil on canvas', 'oil on panel', 'tempera', 'acrylic'],
+            'drawings': ['drawing', 'pencil', 'charcoal', 'chalk', 'graphite', 'sketch'],
+            'prints': ['print', 'lithograph', 'screenprint', 'silkscreen', 'monotype'],
+            'etchings': ['etching', 'engraving', 'aquatint', 'drypoint', 'mezzotint'],
+            'woodcuts': ['woodcut', 'woodblock', 'wood engraving', 'ukiyo-e'],
+            'photographs': ['photograph', 'photography', 'gelatin silver', 'daguerreotype', 'albumen'],
+            'watercolors': ['watercolor', 'gouache', 'wash']
+        };
+
+        // Period date ranges
+        const PERIOD_RANGES = {
+            'ancient': { start: -5000, end: 500 },
+            'medieval': { start: 500, end: 1400 },
+            '15th': { start: 1400, end: 1500 },
+            '16th': { start: 1500, end: 1600 },
+            '17th': { start: 1600, end: 1700 },
+            '18th': { start: 1700, end: 1800 },
+            '19th': { start: 1800, end: 1900 },
+            '20th': { start: 1900, end: 2000 }
+        };
+
+        // ===== Toast Notifications =====
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ===== Theme Toggle =====
+        function initTheme() {
+            const savedTheme = localStorage.getItem('artium_theme');
+            if (savedTheme === 'light') {
+                state.darkMode = false;
+                document.documentElement.classList.add('light');
+                updateThemeIcon();
+            }
+        }
+
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            document.documentElement.classList.toggle('light');
+            localStorage.setItem('artium_theme', state.darkMode ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const sunIcon = document.querySelector('.sun-icon');
+            const moonIcon = document.querySelector('.moon-icon');
+            if (state.darkMode) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        }
+
+        // ===== Tab Navigation =====
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabName + 'Tab');
+            });
+
+            // Manage background fetching based on tab
+            if (tabName === 'explore') {
+                // Resume background fetching for explore
+                if (!bufferFetchInterval) {
+                    startBackgroundFetching();
+                }
+            } else {
+                // Pause explore fetching when on other tabs (save bandwidth)
+                stopBackgroundFetching();
+            }
+
+            if (tabName === 'saved') {
+                renderSavedGrid();
+            }
+        }
+
+        // ===== API Functions =====
+
+        // Extended random search terms for maximum variety
+        const RANDOM_SEARCH_TERMS = [
+            // People & Portraits
+            'portrait', 'woman', 'man', 'mother', 'child', 'family', 'nude',
+            'self portrait', 'king', 'queen', 'nobleman', 'peasant', 'noble',
+            'elderly', 'youth', 'couple', 'group portrait', 'figure',
+            // Nature & Landscapes
+            'landscape', 'nature', 'flowers', 'sea', 'mountain', 'forest',
+            'garden', 'river', 'sunset', 'night', 'winter', 'summer', 'spring',
+            'autumn', 'storm', 'sky', 'clouds', 'trees', 'meadow', 'field',
+            'coast', 'cliff', 'waterfall', 'lake', 'pond', 'snow', 'rain',
+            // Animals
+            'horse', 'dog', 'cat', 'bird', 'lion', 'deer', 'cattle', 'sheep',
+            // Subjects & Themes
+            'still life', 'religious', 'mythology', 'battle', 'dance', 'music',
+            'reading', 'saint', 'angel', 'virgin', 'christ', 'madonna',
+            'crucifixion', 'annunciation', 'nativity', 'resurrection',
+            'hunting', 'fishing', 'harvest', 'feast', 'banquet', 'wedding',
+            'death', 'love', 'allegory', 'vanitas', 'fruit', 'wine',
+            // Places & Architecture
+            'city', 'village', 'castle', 'church', 'ruins', 'interior',
+            'palace', 'market', 'harbor', 'bridge', 'street', 'tavern',
+            // Movements & Styles
+            'classical', 'romantic', 'pastoral', 'biblical', 'historical',
+            'oriental', 'exotic', 'domestic', 'scene', 'view'
+        ];
+
+        // Track recently used terms to maximize variety
+        let usedSearchTerms = new Set();
+        let usedWikiTerms = new Set();
+        const MAX_USED_TERMS = 20; // Reset after using this many unique terms
+
+        function getRandomSearchTerm(usedSet, termsArray) {
+            // Get unused terms
+            const unusedTerms = termsArray.filter(t => !usedSet.has(t));
+
+            // If all terms used, reset and use any
+            if (unusedTerms.length === 0) {
+                usedSet.clear();
+                const term = termsArray[Math.floor(Math.random() * termsArray.length)];
+                usedSet.add(term);
+                return term;
+            }
+
+            // Pick random unused term
+            const term = unusedTerms[Math.floor(Math.random() * unusedTerms.length)];
+            usedSet.add(term);
+
+            // Limit set size
+            if (usedSet.size > MAX_USED_TERMS) {
+                // Remove oldest entries (convert to array, remove first few)
+                const arr = Array.from(usedSet);
+                arr.slice(0, 5).forEach(t => usedSet.delete(t));
+            }
+
+            return term;
+        }
+
+        // Cache for Met object IDs - with limited size to allow variety
+        const metSearchCache = new Map();
+        const MAX_CACHE_SIZE = 50; // Limit cache to allow fresh searches
+
+        // Fetch random public domain objects from Met Museum
+        async function fetchMetArtworks(count = 10, searchQuery = '', filters = {}) {
+            try {
+                let url = `${MET_API_BASE}/search?hasImages=true&isPublicDomain=true`;
+
+                // Build search query with randomization
+                let q = searchQuery;
+
+                if (!q) {
+                    // For explore mode, use rotating random search terms for maximum variety
+                    q = getRandomSearchTerm(usedSearchTerms, RANDOM_SEARCH_TERMS);
+                }
+
+                // Ensure we have a valid search term
+                if (!q || q.trim() === '') {
+                    q = 'painting';
+                }
+
+                if (filters.medium && MEDIUM_KEYWORDS[filters.medium]) {
+                    q = MEDIUM_KEYWORDS[filters.medium][0] + ' ' + q;
+                }
+
+                if (filters.style) {
+                    const styleMap = {
+                        'impressionism': 'impressionist',
+                        'baroque': 'baroque',
+                        'renaissance': 'renaissance',
+                        'romanticism': 'romantic',
+                        'realism': 'realist',
+                        'japanese': 'japanese',
+                        'chinese': 'chinese',
+                        'european': 'european painting'
+                    };
+                    q += ' ' + (styleMap[filters.style] || filters.style);
+                }
+
+                url += `&q=${encodeURIComponent(q)}`;
+
+                // Add date range filter ONLY if user explicitly selected a time period
+                const hasPeriodFilter = filters.period && filters.period !== '' && PERIOD_RANGES[filters.period];
+                if (hasPeriodFilter) {
+                    const range = PERIOD_RANGES[filters.period];
+                    url += `&dateBegin=${range.start}&dateEnd=${range.end}`;
+                }
+
+                // Only sometimes add department filter (50% chance) to allow for variety
+                // This prevents empty results when search term + department have no overlap
+                if (!searchQuery && !filters.medium && !filters.style && Math.random() > 0.5) {
+                    const randomDept = MET_DEPARTMENTS[Math.floor(Math.random() * MET_DEPARTMENTS.length)];
+                    url += `&departmentId=${randomDept}`;
+                }
+
+                // Check memory cache first, then localStorage cache
+                let objectIDs;
+                const cacheKey = `search_${encodeURIComponent(url)}`;
+
+                if (metSearchCache.has(url)) {
+                    objectIDs = metSearchCache.get(url);
+                } else {
+                    // Limit memory cache size
+                    if (metSearchCache.size >= MAX_CACHE_SIZE) {
+                        const firstKey = metSearchCache.keys().next().value;
+                        metSearchCache.delete(firstKey);
+                    }
+
+                    try {
+                        const data = await fetchWithBackoff(url, cacheKey);
+
+                        if (!data.objectIDs || data.objectIDs.length === 0) {
+                            // Fallback: try a simpler search with just 'painting'
+                            const fallbackUrl = `${MET_API_BASE}/search?hasImages=true&isPublicDomain=true&q=painting`;
+                            const fallbackData = await fetchWithBackoff(fallbackUrl, `search_painting`);
+                            if (fallbackData.objectIDs && fallbackData.objectIDs.length > 0) {
+                                objectIDs = fallbackData.objectIDs;
+                                metSearchCache.set(fallbackUrl, objectIDs);
+                            } else {
+                                // Met API not returning results - mark as unavailable and fall back to Wikimedia
+                                metApiAvailable = false;
+                                return [];
+                            }
+                        } else {
+                            objectIDs = data.objectIDs;
+                            metSearchCache.set(url, objectIDs);
+                            metApiAvailable = true;
+                        }
+                    } catch (error) {
+                        console.error('Met API search failed:', error);
+                        metApiAvailable = false;
+                        return []; // Will trigger Wikimedia fallback
+                    }
+                }
+
+                // TRUE random selection with multiple randomization techniques
+                // 1. Random starting offset (anywhere in the result set)
+                const maxOffset = Math.max(0, objectIDs.length - count * 3);
+                const randomOffset = Math.floor(Math.random() * maxOffset);
+
+                // 2. Fisher-Yates shuffle for truly random selection
+                const shuffled = [...objectIDs];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+
+                // 3. Take from random offset with random skip pattern
+                // Limit to count * 2 to avoid too many API calls
+                const targetCount = Math.min(count * 2, 40);
+                const skipPattern = Math.floor(Math.random() * 3) + 1; // Skip 1-3 items
+                const selectedIds = [];
+                for (let i = randomOffset; i < shuffled.length && selectedIds.length < targetCount; i += skipPattern) {
+                    selectedIds.push(shuffled[i]);
+                }
+                // Fill remaining if needed
+                for (let i = 0; selectedIds.length < targetCount && i < shuffled.length; i++) {
+                    if (!selectedIds.includes(shuffled[i])) {
+                        selectedIds.push(shuffled[i]);
+                    }
+                }
+
+                // Fetch object details in controlled parallel batches
+                const batches = [];
+                for (let i = 0; i < selectedIds.length; i += PARALLEL_REQUESTS) {
+                    batches.push(selectedIds.slice(i, i + PARALLEL_REQUESTS));
+                }
+
+                // Process batches sequentially with delay, objects within each batch in parallel
+                const results = [];
+                for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+                    const batch = batches[batchIndex];
+                    const batchResults = await Promise.all(
+                        batch.map(id => fetchMetObjectDetails(id, filters))
+                    );
+                    results.push(batchResults);
+
+                    // Add delay between batches (not after last batch)
+                    if (batchIndex < batches.length - 1) {
+                        await delay(BATCH_DELAY_MS);
+                    }
+                }
+
+                // Flatten (2 levels deep), filter, and sort by priority (lower score = shown first = older art preferred)
+                const artworks = results.flat(2)
+                    .filter(a => a !== null)
+                    .sort((a, b) => (a.priorityScore || 50) - (b.priorityScore || 50));
+
+                return artworks.slice(0, count);
+            } catch (error) {
+                console.error('Error fetching Met artworks:', error);
+                return [];
+            }
+        }
+
+        async function fetchMetObjectDetails(objectId, filters = {}) {
+            try {
+                const cacheKey = `obj_${objectId}`;
+                const obj = await fetchWithBackoff(`${MET_API_BASE}/objects/${objectId}`, cacheKey);
+
+                // Only include public domain works with images
+                if (!obj.isPublicDomain || !obj.primaryImage) return null;
+
+                // ONLY apply period filter if user explicitly selected a time period
+                // If no period filter, show ALL artworks including those without dates
+                const hasPeriodFilter = filters.period && filters.period !== '' && PERIOD_RANGES[filters.period];
+
+                if (hasPeriodFilter) {
+                    const range = PERIOD_RANGES[filters.period];
+
+                    // Met API provides objectBeginDate and objectEndDate as numbers
+                    const beginYear = obj.objectBeginDate;
+                    const endYear = obj.objectEndDate;
+
+                    // If we have numeric dates from the API, use them (more reliable)
+                    if (typeof beginYear === 'number' && typeof endYear === 'number') {
+                        // Check if the artwork's date range overlaps with the filter range
+                        if (endYear < range.start || beginYear > range.end) {
+                            return null;
+                        }
+                    } else {
+                        // Fallback: try to extract year from objectDate string
+                        const year = extractYear(obj.objectDate);
+                        if (year !== null) {
+                            if (year < range.start || year > range.end) return null;
+                        } else {
+                            // Can't determine date but user wants specific period - skip
+                            return null;
+                        }
+                    }
+                }
+                // If no period filter is set, we include the artwork regardless of whether it has a date
+
+                // Apply medium filter (only if selected)
+                const hasMediumFilter = filters.medium && filters.medium !== '' && MEDIUM_KEYWORDS[filters.medium];
+
+                if (hasMediumFilter) {
+                    const mediumLower = (obj.medium || '').toLowerCase();
+                    const classification = (obj.classification || '').toLowerCase();
+                    const objectName = (obj.objectName || '').toLowerCase();
+                    const hasMatch = MEDIUM_KEYWORDS[filters.medium].some(kw =>
+                        mediumLower.includes(kw) || classification.includes(kw) || objectName.includes(kw)
+                    );
+                    if (!hasMatch) return null;
+                }
+
+                return normalizeMetArtwork(obj);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Check if an artwork is photography based on metadata
+        function isPhotography(obj) {
+            const medium = (obj.medium || '').toLowerCase();
+            const classification = (obj.classification || '').toLowerCase();
+            const department = (obj.department || '').toLowerCase();
+            const objectName = (obj.objectName || '').toLowerCase();
+
+            const photoKeywords = [
+                'photograph', 'photography', 'photo', 'gelatin silver', 'albumen',
+                'daguerreotype', 'calotype', 'tintype', 'ambrotype', 'cyanotype',
+                'photogravure', 'chromogenic', 'polaroid', 'silver print', 'platinum print',
+                'photographic'
+            ];
+
+            return photoKeywords.some(kw =>
+                medium.includes(kw) || classification.includes(kw) ||
+                department.includes(kw) || objectName.includes(kw)
+            );
+        }
+
+        // Calculate a priority score for artwork (lower = better, will be shown first)
+        // This deboosts modern art (post-1980) and heavily deboosts post-2000
+        // Returns null if artwork should be excluded (undated photography)
+        function getArtworkPriorityScore(obj) {
+            try {
+                const beginYear = obj.objectBeginDate;
+                const endYear = obj.objectEndDate;
+
+                // Use the end date if available, otherwise try to extract from objectDate
+                let year = endYear || beginYear;
+                if ((!year || typeof year !== 'number') && obj.objectDate) {
+                    year = extractYear(obj.objectDate);
+                }
+
+                const isPhoto = isPhotography(obj);
+
+                if (!year || typeof year !== 'number') {
+                    // Unknown/undated artwork
+                    if (isPhoto) {
+                        // Exclude undated photography entirely
+                        return null;
+                    } else {
+                        // Undated fine art - include with slight deboost (priority 60-75)
+                        return 60 + Math.random() * 15;
+                    }
+                }
+
+                if (year > 2000) {
+                    // Heavily deboost post-2000 art (priority 200-300)
+                    return 200 + Math.random() * 100;
+                } else if (year > 1980) {
+                    // Deboost 1980-2000 art (priority 100-150)
+                    return 100 + Math.random() * 50;
+                } else if (year > 1900) {
+                    // Slight deboost for 1900-1980 (priority 40-60)
+                    return 40 + Math.random() * 20;
+                } else {
+                    // Pre-1900 art gets best priority (0-40)
+                    // Older is slightly better
+                    const ageFactor = Math.max(0, (1900 - year) / 100);
+                    return Math.random() * 30 + Math.max(0, 10 - ageFactor * 10);
+                }
+            } catch (e) {
+                // If anything goes wrong, return slight deboost priority
+                return 60 + Math.random() * 15;
+            }
+        }
+
+        function normalizeMetArtwork(obj) {
+            // Calculate priority score first - if null, exclude this artwork (undated photography)
+            const priorityScore = getArtworkPriorityScore(obj);
+            if (priorityScore === null) {
+                return null;
+            }
+
+            const artistDates = [obj.artistBeginDate, obj.artistEndDate]
+                .filter(d => d)
+                .join('–');
+
+            // Extract just the nationality (first part before comma or parenthesis)
+            let nationality = obj.artistNationality || null;
+            if (nationality) {
+                // "French" from "French, born Paris" or just "French"
+                nationality = nationality.split(',')[0].split('(')[0].trim();
+            }
+
+            // Use primaryImage for high quality tiles (Met images are typically 1000-4000px)
+            return {
+                priorityScore,
+                uniqueId: `met_${obj.objectID}`,
+                source: 'met',
+                sourceUrl: obj.objectURL,
+                imageUrl: obj.primaryImage,
+                thumbnailUrl: obj.primaryImage,
+                title: obj.title || 'Untitled',
+                artist: obj.artistDisplayName || 'Unknown Artist',
+                artistNationality: nationality,
+                artistDates: artistDates || null,
+                // Skip artistDisplayBio as it duplicates nationality/dates info
+                date: obj.objectDate || null,
+                medium: obj.medium || null,
+                dimensions: obj.dimensions || null,
+                classification: obj.classification || null,
+                department: obj.department || null,
+                culture: obj.culture || null,
+                period: obj.period || null,
+                dynasty: obj.dynasty || null,
+                creditLine: obj.creditLine || null,
+                geographyType: obj.geographyType || null,
+                city: obj.city || null,
+                country: obj.country || null,
+                region: obj.region || null,
+                repository: 'The Metropolitan Museum of Art',
+                accessionNumber: obj.accessionNumber || null,
+                isPublicDomain: true
+            };
+        }
+
+        // Extended Wikimedia search terms for variety
+        const WIKI_SEARCH_TERMS = [
+            // By genre/type
+            'painting portrait', 'painting landscape', 'oil painting', 'masterpiece',
+            'famous painting', 'genre painting', 'still life painting', 'marine painting',
+            'animal painting', 'figurative art', 'battle painting', 'equestrian painting',
+            'court painting', 'history painting', 'allegory painting', 'nude painting',
+            // By movement/style
+            'classical art', 'renaissance art', 'impressionist', 'baroque painting',
+            'romantic painting', 'realist painting', 'academic art', 'neoclassical painting',
+            'mannerist', 'pre-raphaelite', 'symbolist painting', 'orientalist painting',
+            'rococo painting', 'naturalist painting', 'post-impressionist',
+            // By nationality
+            'dutch master', 'italian painting', 'french painting', 'flemish painting',
+            'spanish painting', 'german painting', 'english painting', 'american painting',
+            'russian painting', 'scandinavian painting', 'austrian painting',
+            // By subject
+            'religious painting', 'mythological painting', 'historical painting',
+            'biblical scene', 'madonna painting', 'saint painting', 'angel painting',
+            'crucifixion art', 'nativity art', 'annunciation art',
+            // By artist type
+            'old master', 'grand manner', 'academy painting', 'salon painting',
+            // By setting
+            'interior painting', 'exterior scene', 'domestic scene', 'pastoral scene',
+            'village scene', 'cityscape', 'seascape', 'moonlight painting'
+        ];
+
+        // Fetch public domain images from Wikimedia Commons
+        async function fetchWikimediaArtworks(count = 10, searchQuery = '', filters = {}) {
+            try {
+                // Build category search
+                let categories = ['Category:Public domain paintings'];
+
+                // For Wikimedia, we only want fine art - NO photography (photos come from Met only)
+                if (filters.medium && filters.medium !== 'photographs') {
+                    const categoryMap = {
+                        'paintings': 'Category:Public domain paintings',
+                        'drawings': 'Category:Public domain drawings',
+                        'prints': 'Category:Public domain prints',
+                        'etchings': 'Category:Public domain etchings',
+                        'woodcuts': 'Category:Woodcuts',
+                        'watercolors': 'Category:Watercolor paintings'
+                    };
+                    categories = [categoryMap[filters.medium] || 'Category:Public domain paintings'];
+                } else if (filters.medium === 'photographs') {
+                    // Don't fetch photos from Wikimedia - return empty
+                    return [];
+                }
+
+                if (filters.style) {
+                    const styleCategories = {
+                        'impressionism': 'Category:Impressionist paintings',
+                        'baroque': 'Category:Baroque paintings',
+                        'renaissance': 'Category:Renaissance paintings',
+                        'romanticism': 'Category:Romantic paintings',
+                        'realism': 'Category:Realist paintings',
+                        'japanese': 'Category:Art of Japan',
+                        'chinese': 'Category:Art of China',
+                        'european': 'Category:Paintings of Europe'
+                    };
+                    if (styleCategories[filters.style]) {
+                        categories.push(styleCategories[filters.style]);
+                    }
+                }
+
+                // Use search API with filters - add randomization
+                let searchTerm = searchQuery;
+
+                if (!searchTerm) {
+                    // Use rotating random search terms for maximum variety
+                    searchTerm = getRandomSearchTerm(usedWikiTerms, WIKI_SEARCH_TERMS);
+                }
+
+                // Add period/century keywords ONLY if user explicitly selected a time period
+                const hasPeriodFilter = filters.period && filters.period !== '' && PERIOD_RANGES[filters.period];
+                if (hasPeriodFilter) {
+                    const periodKeywords = {
+                        'ancient': 'ancient classical antiquity',
+                        'medieval': 'medieval middle ages',
+                        '15th': '15th century renaissance 1400s',
+                        '16th': '16th century renaissance 1500s',
+                        '17th': '17th century baroque 1600s',
+                        '18th': '18th century rococo neoclassical 1700s',
+                        '19th': '19th century romantic impressionist 1800s',
+                        '20th': '20th century modern contemporary 1900s'
+                    };
+                    if (periodKeywords[filters.period]) {
+                        searchTerm += ' ' + periodKeywords[filters.period];
+                    }
+                }
+
+                // Use MUCH larger random offset for variety (Wikimedia has millions of images)
+                // Random offset between 0-500 for different results each time
+                const randomOffset = Math.floor(Math.random() * 500);
+
+                const params = new URLSearchParams({
+                    action: 'query',
+                    format: 'json',
+                    origin: '*',
+                    generator: 'search',
+                    gsrsearch: `${searchTerm} filetype:bitmap`,
+                    gsrnamespace: '6', // File namespace
+                    gsrlimit: String(count * 3), // Fetch more for filtering
+                    gsroffset: String(randomOffset), // Large random offset for variety
+                    prop: 'imageinfo|categories',
+                    iiprop: 'url|extmetadata|size|mime',
+                    iiurlwidth: '1200',
+                    cllimit: '10'
+                });
+
+                const response = await fetch(`${WIKIMEDIA_API_BASE}?${params}`);
+                if (!response.ok) throw new Error('Wikimedia API request failed');
+
+                const data = await response.json();
+                if (!data.query || !data.query.pages) return [];
+
+                // Shuffle results for more variety
+                const pages = Object.values(data.query.pages).sort(() => Math.random() - 0.5);
+
+                const artworks = pages
+                    .map(page => normalizeWikimediaArtwork(page, filters))
+                    .filter(a => a !== null)
+                    .slice(0, count);
+
+                return artworks;
+            } catch (error) {
+                console.error('Error fetching Wikimedia artworks:', error);
+                return [];
+            }
+        }
+
+        function normalizeWikimediaArtwork(page, filters = {}) {
+            if (!page.imageinfo || !page.imageinfo[0]) return null;
+
+            const info = page.imageinfo[0];
+            const meta = info.extmetadata || {};
+
+            // Skip non-images
+            if (!info.mime || !info.mime.startsWith('image/')) return null;
+
+            // Skip small images (likely thumbnails or icons)
+            if (info.width && info.width < 300) return null;
+            if (info.height && info.height < 300) return null;
+
+            // EXCLUDE PHOTOGRAPHY from Wikimedia - we only want fine art here
+            // Photos should come from Met Museum's curated photography collection
+            const pageTitleLower = (page.title || '').toLowerCase();
+            const categoriesLower = (meta.Categories?.value || '').toLowerCase();
+            const mediumLower = (meta.Medium?.value || '').toLowerCase();
+
+            const photoKeywords = [
+                'photograph', 'photography', 'photo', 'gelatin silver', 'albumen',
+                'daguerreotype', 'calotype', 'tintype', 'ambrotype', 'cyanotype',
+                'photogravure', 'chromogenic', 'polaroid', 'camera', 'snapshot',
+                'photographic print', 'silver print', 'platinum print'
+            ];
+
+            const isPhotograph = photoKeywords.some(kw =>
+                pageTitleLower.includes(kw) || categoriesLower.includes(kw) || mediumLower.includes(kw)
+            );
+
+            if (isPhotograph) return null;
+
+            // Check for public domain license
+            const license = meta.LicenseShortName?.value || '';
+            const usageTerms = meta.UsageTerms?.value || '';
+            const copyrightStatus = meta.Copyrighted?.value || '';
+
+            const isPublicDomain =
+                license.toLowerCase().includes('public domain') ||
+                license.includes('CC0') ||
+                license.includes('PDM') ||
+                usageTerms.toLowerCase().includes('public domain') ||
+                copyrightStatus === 'False';
+
+            if (!isPublicDomain) return null;
+
+            // ONLY apply period filter if user explicitly selected a time period
+            // If no period filter, show ALL artworks including those without dates
+            const hasPeriodFilter = filters.period && filters.period !== '' && PERIOD_RANGES[filters.period];
+
+            if (hasPeriodFilter) {
+                const range = PERIOD_RANGES[filters.period];
+                const dateStr = meta.DateTimeOriginal?.value || meta.DateTime?.value || '';
+                const year = extractYear(dateStr);
+
+                if (year !== null) {
+                    // If we found a year, validate it's in range
+                    if (year < range.start || year > range.end) return null;
+                } else {
+                    // For Wikimedia, try to infer from categories or description
+                    const allText = (page.title || '') + ' ' + (meta.ImageDescription?.value || '') + ' ' + (meta.Categories?.value || '');
+                    const inferredYear = extractYear(allText);
+
+                    if (inferredYear !== null) {
+                        if (inferredYear < range.start || inferredYear > range.end) return null;
+                    }
+                    // If we still can't determine date, let it through - search keywords should help
+                }
+            }
+            // If no period filter is set, include the artwork regardless of whether it has a date
+
+            // Extract artist info using improved cleaning
+            const artistInfo = meta.Artist?.value || '';
+            const artistName = extractWikimediaArtist(artistInfo);
+            const artistDatesMatch = artistInfo.match(/\((\d{4})\s*[-–]\s*(\d{4})\)/);
+            const artistDates = artistDatesMatch ? `${artistDatesMatch[1]}–${artistDatesMatch[2]}` : null;
+
+            // Extract clean title
+            const pageTitle = page.title || '';
+            const objectName = meta.ObjectName?.value || '';
+            const title = extractWikimediaTitle(objectName, pageTitle);
+
+            // Clean other metadata fields
+            const rawDate = meta.DateTimeOriginal?.value || meta.DateTime?.value || null;
+            const cleanDate = cleanWikimediaText(rawDate);
+
+            const rawMedium = meta.Medium?.value || null;
+            const cleanMedium = cleanWikimediaText(rawMedium);
+
+            const rawDescription = meta.ImageDescription?.value || null;
+            const cleanDescription = cleanWikimediaText(rawDescription);
+
+            const rawCredit = meta.Credit?.value || null;
+            const cleanCredit = cleanWikimediaText(rawCredit);
+
+            const rawRepository = meta.Repository?.value || 'Wikimedia Commons';
+            const cleanRepository = cleanWikimediaText(rawRepository) || 'Wikimedia Commons';
+
+            // Use full resolution URL for better quality, thumburl for display
+            const imageUrl = info.url;
+            const thumbnailUrl = info.thumburl || info.url;
+
+            // Calculate priority score (deboost modern art, slight deboost for undated)
+            const dateForPriority = cleanDate ? extractYear(cleanDate) : null;
+            let priorityScore;
+            if (!dateForPriority) {
+                // Undated fine art - slight deboost (priority 60-75)
+                priorityScore = 60 + Math.random() * 15;
+            } else if (dateForPriority > 2000) {
+                priorityScore = 200 + Math.random() * 100;
+            } else if (dateForPriority > 1980) {
+                priorityScore = 100 + Math.random() * 50;
+            } else if (dateForPriority > 1900) {
+                priorityScore = 40 + Math.random() * 20;
+            } else {
+                const ageFactor = Math.max(0, (1900 - dateForPriority) / 100);
+                priorityScore = Math.random() * 30 + Math.max(0, 10 - ageFactor * 10);
+            }
+
+            return {
+                priorityScore,
+                uniqueId: `wiki_${page.pageid}`,
+                source: 'wikimedia',
+                sourceUrl: info.descriptionurl,
+                imageUrl: imageUrl,
+                thumbnailUrl: thumbnailUrl,
+                title: title,
+                artist: artistName,
+                artistNationality: null,
+                artistDates: artistDates,
+                artistBio: null,
+                date: cleanDate,
+                medium: cleanMedium,
+                dimensions: rawDescription?.match(/\d+\s*[x×]\s*\d+\s*cm/i)?.[0] || null,
+                classification: null,
+                department: null,
+                culture: null,
+                period: null,
+                dynasty: null,
+                creditLine: cleanCredit,
+                geographyType: null,
+                city: null,
+                country: null,
+                region: null,
+                repository: cleanRepository,
+                accessionNumber: null,
+                description: cleanDescription && cleanDescription.length < 500 ? cleanDescription : null,
+                license: license,
+                isPublicDomain: true
+            };
+        }
+
+        // Helper functions
+        function getSourceDisplayName(source) {
+            const sourceNames = {
+                'met': 'Met Museum',
+                'aic': 'Art Institute Chicago',
+                'cleveland': 'Cleveland Museum',
+                'wikimedia': 'Wikimedia'
+            };
+            return sourceNames[source] || source;
+        }
+
+        function stripHtml(str) {
+            if (!str) return null;
+            const div = document.createElement('div');
+            div.innerHTML = str;
+            return div.textContent || div.innerText || str;
+        }
+
+        // Clean Wikimedia metadata that contains QS labels and multilingual data
+        function cleanWikimediaText(str) {
+            if (!str) return null;
+
+            // First strip HTML
+            let cleaned = stripHtml(str);
+            if (!cleaned) return null;
+
+            // Remove QS patterns like "title QS:P1476,de:" or "label QS:Lde,"
+            cleaned = cleaned.replace(/\s*(title|label)\s*QS:[^\s,]+,?/gi, ' ');
+
+            // Remove language codes like "German:" at the start
+            cleaned = cleaned.replace(/^[A-Za-z]+:\s*/i, '');
+
+            // Remove patterns like "QS:Len," "QS:Lde," etc.
+            cleaned = cleaned.replace(/QS:L[a-z-]+,?"?[^"]*"?/gi, '');
+
+            // Remove any remaining QS: patterns
+            cleaned = cleaned.replace(/QS:[^\s]+/gi, '');
+
+            // Remove wiki template patterns like {{...}}
+            cleaned = cleaned.replace(/\{\{[^}]*\}\}/g, '');
+
+            // Remove multiple spaces and trim
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+            // If there are multiple similar titles separated by spaces, take the first clean one
+            // This handles cases like "Mona Lisa Mona Lisa..."
+            const words = cleaned.split(' ');
+            if (words.length > 4) {
+                // Check for repeated patterns
+                const firstTwo = words.slice(0, 2).join(' ');
+                const nextTwo = words.slice(2, 4).join(' ');
+                if (firstTwo === nextTwo) {
+                    cleaned = firstTwo;
+                }
+            }
+
+            // If result is too short or empty, return null
+            if (!cleaned || cleaned.length < 2) return null;
+
+            return cleaned;
+        }
+
+        // Extract clean English title from Wikimedia metadata
+        function extractWikimediaTitle(objectName, pageTitle) {
+            // Try to get the English label if present
+            if (objectName) {
+                // Look for English label pattern
+                const enMatch = objectName.match(/label\s*QS:Len,\s*"([^"]+)"/i);
+                if (enMatch) return enMatch[1];
+
+                // Look for simple quoted title
+                const quotedMatch = objectName.match(/"([^"]+)"/);
+                if (quotedMatch && quotedMatch[1].length > 2 && !quotedMatch[1].includes('QS:')) {
+                    return quotedMatch[1];
+                }
+            }
+
+            // Clean the objectName
+            const cleanedName = cleanWikimediaText(objectName);
+            if (cleanedName && cleanedName.length > 2 && cleanedName.length < 200) {
+                return cleanedName;
+            }
+
+            // Fall back to cleaned page title
+            const cleanTitle = pageTitle
+                .replace('File:', '')
+                .replace(/\.[^.]+$/, '')
+                .replace(/_/g, ' ')
+                .replace(/\s*-\s*(WGA|Google Art Project|crop).*$/i, '')
+                .trim();
+
+            return cleanTitle || 'Untitled';
+        }
+
+        // Extract clean artist name from Wikimedia metadata
+        function extractWikimediaArtist(artistInfo) {
+            if (!artistInfo) return 'Unknown Artist';
+
+            // Strip HTML first
+            let artist = stripHtml(artistInfo);
+            if (!artist) return 'Unknown Artist';
+
+            // Remove common wiki patterns
+            artist = artist
+                .replace(/\{\{[^}]*\}\}/g, '')
+                .replace(/\[\[[^\]]*\|([^\]]+)\]\]/g, '$1')
+                .replace(/\[\[([^\]]+)\]\]/g, '$1')
+                .replace(/QS:[^\s]+/gi, '')
+                .trim();
+
+            // Take text before parentheses (life dates)
+            const parenIndex = artist.indexOf('(');
+            if (parenIndex > 0) {
+                artist = artist.substring(0, parenIndex).trim();
+            }
+
+            // Remove trailing/leading punctuation
+            artist = artist.replace(/^[,.\s]+|[,.\s]+$/g, '');
+
+            if (!artist || artist.length < 2) return 'Unknown Artist';
+
+            return artist;
+        }
+
+        function extractYear(dateStr) {
+            if (dateStr === null || dateStr === undefined) return null;
+
+            // Handle numeric input (from Met API)
+            if (typeof dateStr === 'number') {
+                return dateStr;
+            }
+
+            // Convert to string
+            const str = String(dateStr);
+
+            // Handle negative years (BCE)
+            const bceMatch = str.match(/(\d+)\s*(BCE|BC|B\.C\.)/i);
+            if (bceMatch) return -parseInt(bceMatch[1]);
+
+            // Handle century mentions like "19th century" or "20th-century"
+            const centuryMatch = str.match(/(\d{1,2})(?:st|nd|rd|th)[\s-]*century/i);
+            if (centuryMatch) {
+                // "19th century" = 1800s, "20th century" = 1900s
+                const century = parseInt(centuryMatch[1]);
+                return (century - 1) * 100 + 50; // Return middle of century
+            }
+
+            // Handle decade mentions like "1920s"
+            const decadeMatch = str.match(/(\d{4})s/);
+            if (decadeMatch) {
+                return parseInt(decadeMatch[1]) + 5; // Return middle of decade
+            }
+
+            // Handle date ranges like "1850-1860" or "1850–1860" - take the middle
+            const rangeMatch = str.match(/(\d{4})\s*[-–]\s*(\d{4})/);
+            if (rangeMatch) {
+                const start = parseInt(rangeMatch[1]);
+                const end = parseInt(rangeMatch[2]);
+                return Math.floor((start + end) / 2);
+            }
+
+            // Handle "circa" or "c." dates
+            const circaMatch = str.match(/(?:circa|ca?\.?)\s*(\d{3,4})/i);
+            if (circaMatch) {
+                return parseInt(circaMatch[1]);
+            }
+
+            // Handle regular 4-digit years
+            const yearMatch = str.match(/\b(1[0-9]{3}|20[0-2][0-9])\b/);
+            if (yearMatch) {
+                return parseInt(yearMatch[1]);
+            }
+
+            // Handle 3-digit years (ancient/medieval)
+            const ancientMatch = str.match(/\b([1-9][0-9]{2})\b/);
+            if (ancientMatch) {
+                const year = parseInt(ancientMatch[1]);
+                // Only return if it looks like a plausible historical year
+                if (year >= 100 && year <= 999) {
+                    return year;
+                }
+            }
+
+            return null;
+        }
+
+        // Duplicate detection
+        function generateDuplicateKey(artwork) {
+            const title = (artwork.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const artist = (artwork.artist || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            return `${title}_${artist}`;
+        }
+
+        function isDuplicate(artwork, seenSet) {
+            const key = generateDuplicateKey(artwork);
+            if (seenSet.has(key) || seenSet.has(artwork.uniqueId)) {
+                return true;
+            }
+            seenSet.add(key);
+            seenSet.add(artwork.uniqueId);
+            return false;
+        }
+
+        // ===== Rendering =====
+        function createTile(artwork) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.id = artwork.uniqueId;
+
+            // Build artist info line without duplication
+            const artistInfoParts = [];
+            if (artwork.artistNationality) {
+                // Extract just the country, not the full bio
+                const nationality = artwork.artistNationality.split(',')[0].trim();
+                artistInfoParts.push(nationality);
+            }
+            if (artwork.artistDates) {
+                artistInfoParts.push(artwork.artistDates);
+            }
+            const artistInfoLine = artistInfoParts.join(', ');
+
+            tile.innerHTML = `
+                <div class="tile-inner">
+                    <div class="tile-front">
+                        <div class="tile-image-container">
+                            <img class="tile-image" src="${artwork.thumbnailUrl}" alt="${escapeHtml(artwork.title)}" loading="lazy" onerror="this.parentElement.parentElement.parentElement.parentElement.remove()">
+                            <div class="tile-actions">
+                                <button class="tile-action-btn download-btn" aria-label="Download image">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="${artwork.sourceUrl}" target="_blank" rel="noopener noreferrer" class="source-badge" title="View on ${getSourceDisplayName(artwork.source)}">${getSourceDisplayName(artwork.source)}</a>
+                            <div class="tile-overlay">
+                                <div class="tile-title-preview">${escapeHtml(artwork.title)}</div>
+                                <div class="tile-artist-preview">${escapeHtml(artwork.artist)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-back">
+                        <div class="placard">
+                            <div class="placard-title">${escapeHtml(artwork.title)}</div>
+                            <div class="placard-artist">${escapeHtml(artwork.artist)}</div>
+                            ${artistInfoLine ? `
+                                <div class="placard-artist-dates">${escapeHtml(artistInfoLine)}</div>
+                            ` : ''}
+
+                            <div class="placard-divider"></div>
+
+                            ${artwork.date ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Date</div>
+                                    <div class="placard-value">${artwork.date}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.medium ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Medium</div>
+                                    <div class="placard-value">${artwork.medium}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.dimensions ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Dimensions</div>
+                                    <div class="placard-value">${artwork.dimensions}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.classification ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Classification</div>
+                                    <div class="placard-value">${artwork.classification}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.culture || artwork.period || artwork.dynasty ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Period / Culture</div>
+                                    <div class="placard-value">${[artwork.period, artwork.culture, artwork.dynasty].filter(Boolean).join(' • ')}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.department ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Department</div>
+                                    <div class="placard-value">${artwork.department}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.description ? `
+                                <div class="placard-divider"></div>
+                                <div class="placard-field">
+                                    <div class="placard-description">${artwork.description.substring(0, 300)}${artwork.description.length > 300 ? '...' : ''}</div>
+                                </div>
+                            ` : ''}
+
+                            <div class="placard-divider"></div>
+
+                            <div class="placard-field">
+                                <div class="placard-label">Location</div>
+                                <div class="placard-value">${artwork.repository}</div>
+                            </div>
+
+                            ${artwork.creditLine ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Credit</div>
+                                    <div class="placard-value">${artwork.creditLine}</div>
+                                </div>
+                            ` : ''}
+
+                            ${artwork.accessionNumber ? `
+                                <div class="placard-field">
+                                    <div class="placard-label">Accession</div>
+                                    <div class="placard-value">${artwork.accessionNumber}</div>
+                                </div>
+                            ` : ''}
+
+                            <a href="${artwork.sourceUrl}" target="_blank" rel="noopener noreferrer" class="placard-source" onclick="event.stopPropagation()">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                                </svg>
+                                View on ${artwork.source === 'met' ? 'Met Museum' : 'Wikimedia'}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click handlers
+            const tileInner = tile.querySelector('.tile-inner');
+            tileInner.addEventListener('click', (e) => {
+                // Don't flip when clicking on action buttons, source badge, or placard links
+                if (!e.target.closest('.download-btn') && !e.target.closest('.source-badge') && !e.target.closest('.placard-source')) {
+                    tile.classList.toggle('flipped');
+                }
+            });
+
+            const downloadBtn = tile.querySelector('.download-btn');
+            downloadBtn.addEventListener('click', (e) => downloadArtwork(artwork, e, downloadBtn));
+
+            return tile;
+        }
+
+        // Download artwork image as proper image file
+        async function downloadArtwork(artwork, event, button) {
+            event.stopPropagation();
+
+            if (button.classList.contains('downloading')) return;
+
+            button.classList.add('downloading');
+
+            try {
+                // Use the highest quality image URL
+                const imageUrl = artwork.imageUrl || artwork.thumbnailUrl;
+
+                // Fetch the image
+                const response = await fetch(imageUrl);
+                if (!response.ok) throw new Error('Failed to fetch image');
+
+                const blob = await response.blob();
+
+                // Determine file extension from mime type
+                let extension = 'jpg';
+                const mimeType = blob.type;
+                if (mimeType.includes('png')) extension = 'png';
+                else if (mimeType.includes('gif')) extension = 'gif';
+                else if (mimeType.includes('webp')) {
+                    // Convert webp to jpg for better compatibility
+                    const convertedBlob = await convertWebpToJpg(blob);
+                    downloadBlob(convertedBlob, artwork, 'jpg');
+                    button.classList.remove('downloading');
+                    showToast('Image downloaded');
+                    return;
+                }
+
+                downloadBlob(blob, artwork, extension);
+                showToast('Image downloaded');
+            } catch (error) {
+                console.error('Download failed:', error);
+                // Fallback: open image in new tab
+                window.open(artwork.imageUrl || artwork.thumbnailUrl, '_blank');
+                showToast('Opened in new tab');
+            } finally {
+                button.classList.remove('downloading');
+            }
+        }
+
+        function downloadBlob(blob, artwork, extension) {
+            // Create safe filename from title and artist
+            const safeTitle = (artwork.title || 'artwork').replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+            const safeArtist = (artwork.artist || 'unknown').replace(/[^a-z0-9]/gi, '_').substring(0, 30);
+            const filename = `${safeTitle}_${safeArtist}.${extension}`;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function convertWebpToJpg(webpBlob) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/jpeg', 0.95);
+                };
+                img.src = URL.createObjectURL(webpBlob);
+            });
+        }
+
+        // HTML escape helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function createSkeletonTiles(count) {
+            const skeletons = [];
+            for (let i = 0; i < count; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'skeleton skeleton-tile';
+                skeletons.push(skeleton);
+            }
+            return skeletons;
+        }
+
+        function renderExploreGrid() {
+            const grid = document.getElementById('exploreGrid');
+            grid.innerHTML = '';
+            state.exploreArtworks.forEach(artwork => {
+                grid.appendChild(createTile(artwork));
+            });
+        }
+
+        function renderSearchGrid() {
+            const grid = document.getElementById('searchGrid');
+            grid.innerHTML = '';
+            state.searchArtworks.forEach(artwork => {
+                grid.appendChild(createTile(artwork));
+            });
+
+            const empty = document.getElementById('searchEmpty');
+
+            if (state.searchArtworks.length === 0 && !state.isLoading) {
+                empty.style.display = 'flex';
+            } else {
+                empty.style.display = 'none';
+            }
+        }
+
+        function renderAllGrids() {
+            renderExploreGrid();
+            if (state.currentTab === 'search') {
+                renderSearchGrid();
+            }
+        }
+
+        // ===== Art Institute of Chicago API =====
+        async function fetchAICArtworks(count = 10, searchQuery = '', filters = {}) {
+            if (!apiAvailability.aic) return [];
+
+            try {
+                // Build search parameters
+                let params = new URLSearchParams({
+                    'fields': 'id,title,artist_display,date_display,date_start,date_end,medium_display,dimensions,credit_line,place_of_origin,artwork_type_title,department_title,image_id,is_public_domain,classification_title',
+                    'limit': String(count * 2),
+                    'page': String(Math.floor(Math.random() * 20) + 1) // Random page for variety
+                });
+
+                let searchTerms = [];
+                if (searchQuery) {
+                    searchTerms.push(searchQuery);
+                } else {
+                    // Random search term for explore mode
+                    searchTerms.push(getRandomSearchTerm(usedSearchTerms, RANDOM_SEARCH_TERMS));
+                }
+
+                // Only public domain
+                params.append('query[term][is_public_domain]', 'true');
+
+                // Medium filter - exclude photos from AIC unless specifically requested
+                if (filters.medium === 'photographs') {
+                    params.append('query[term][classification_title]', 'photograph');
+                } else if (filters.medium) {
+                    const mediumMap = {
+                        'paintings': 'painting',
+                        'drawings': 'drawing',
+                        'prints': 'print',
+                        'watercolors': 'watercolor'
+                    };
+                    if (mediumMap[filters.medium]) {
+                        searchTerms.push(mediumMap[filters.medium]);
+                    }
+                }
+
+                if (searchTerms.length > 0) {
+                    params.append('q', searchTerms.join(' '));
+                }
+
+                const url = `${AIC_API_BASE}/artworks/search?${params}`;
+                const cacheKey = `aic_${encodeURIComponent(url)}`;
+
+                const data = await fetchWithBackoff(url, cacheKey);
+                apiAvailability.aic = true;
+
+                if (!data.data || data.data.length === 0) return [];
+
+                const artworks = data.data
+                    .map(obj => normalizeAICArtwork(obj, filters))
+                    .filter(a => a !== null);
+
+                return artworks.slice(0, count);
+            } catch (error) {
+                console.error('AIC API failed:', error);
+                apiAvailability.aic = false;
+                return [];
+            }
+        }
+
+        function normalizeAICArtwork(obj, filters = {}) {
+            // Must have image and be public domain
+            if (!obj.image_id || !obj.is_public_domain) return null;
+
+            // Check if it's photography
+            const classification = (obj.classification_title || '').toLowerCase();
+            const artworkType = (obj.artwork_type_title || '').toLowerCase();
+            const medium = (obj.medium_display || '').toLowerCase();
+
+            const isPhoto = classification.includes('photograph') ||
+                           artworkType.includes('photograph') ||
+                           medium.includes('photograph') ||
+                           medium.includes('gelatin silver') ||
+                           medium.includes('albumen');
+
+            // Exclude photography unless specifically requested
+            if (isPhoto && filters.medium !== 'photographs') return null;
+
+            // Calculate priority score
+            let year = obj.date_end || obj.date_start;
+            if (!year && obj.date_display) {
+                year = extractYear(obj.date_display);
+            }
+
+            let priorityScore;
+            if (!year) {
+                if (isPhoto) return null; // Exclude undated photography
+                priorityScore = 60 + Math.random() * 15; // Undated fine art - slight deboost
+            } else if (year > 2000) {
+                priorityScore = 200 + Math.random() * 100;
+            } else if (year > 1980) {
+                priorityScore = 100 + Math.random() * 50;
+            } else if (year > 1900) {
+                priorityScore = 40 + Math.random() * 20;
+            } else {
+                const ageFactor = Math.max(0, (1900 - year) / 100);
+                priorityScore = Math.random() * 30 + Math.max(0, 10 - ageFactor * 10);
+            }
+
+            // Build image URL from IIIF
+            const imageUrl = `${AIC_IMAGE_BASE}/${obj.image_id}/full/843,/0/default.jpg`;
+
+            return {
+                priorityScore,
+                uniqueId: `aic_${obj.id}`,
+                source: 'aic',
+                sourceUrl: `https://www.artic.edu/artworks/${obj.id}`,
+                imageUrl: imageUrl,
+                thumbnailUrl: imageUrl,
+                title: obj.title || 'Untitled',
+                artist: obj.artist_display ? obj.artist_display.split('\n')[0] : 'Unknown Artist',
+                artistNationality: null,
+                artistDates: null,
+                artistBio: null,
+                date: obj.date_display || null,
+                medium: obj.medium_display || null,
+                dimensions: obj.dimensions || null,
+                classification: obj.classification_title || null,
+                department: obj.department_title || null,
+                culture: null,
+                period: null,
+                dynasty: null,
+                creditLine: obj.credit_line || null,
+                geographyType: null,
+                city: null,
+                country: obj.place_of_origin || null,
+                region: null,
+                repository: 'Art Institute of Chicago',
+                accessionNumber: null,
+                isPublicDomain: true
+            };
+        }
+
+        // ===== Cleveland Museum of Art API =====
+        async function fetchClevelandArtworks(count = 10, searchQuery = '', filters = {}) {
+            if (!apiAvailability.cleveland) return [];
+
+            try {
+                let params = new URLSearchParams({
+                    'has_image': '1',
+                    'limit': String(count * 2),
+                    'skip': String(Math.floor(Math.random() * 500)) // Random offset for variety
+                });
+
+                // Search query
+                if (searchQuery) {
+                    params.append('q', searchQuery);
+                } else {
+                    params.append('q', getRandomSearchTerm(usedSearchTerms, RANDOM_SEARCH_TERMS));
+                }
+
+                // Medium filter
+                if (filters.medium === 'photographs') {
+                    params.append('type', 'Photograph');
+                } else if (filters.medium) {
+                    const typeMap = {
+                        'paintings': 'Painting',
+                        'drawings': 'Drawing',
+                        'prints': 'Print',
+                        'watercolors': 'Watercolor'
+                    };
+                    if (typeMap[filters.medium]) {
+                        params.append('type', typeMap[filters.medium]);
+                    }
+                }
+
+                const url = `${CLEVELAND_API_BASE}/artworks?${params}`;
+                const cacheKey = `cleveland_${encodeURIComponent(url)}`;
+
+                const data = await fetchWithBackoff(url, cacheKey);
+                apiAvailability.cleveland = true;
+
+                if (!data.data || data.data.length === 0) return [];
+
+                const artworks = data.data
+                    .map(obj => normalizeClevelandArtwork(obj, filters))
+                    .filter(a => a !== null);
+
+                return artworks.slice(0, count);
+            } catch (error) {
+                console.error('Cleveland API failed:', error);
+                apiAvailability.cleveland = false;
+                return [];
+            }
+        }
+
+        function normalizeClevelandArtwork(obj, filters = {}) {
+            // Must have image - Cleveland uses 'images' object
+            if (!obj.images || !obj.images.web || !obj.images.web.url) return null;
+
+            // Check share license for public domain / open access
+            const isOpenAccess = obj.share_license_status === 'CC0' ||
+                                obj.share_license_status === 'Public Domain' ||
+                                !obj.copyright;
+
+            if (!isOpenAccess) return null;
+
+            // Check if it's photography
+            const artworkType = (obj.type || '').toLowerCase();
+            const technique = (obj.technique || '').toLowerCase();
+            const medium = (obj.medium || '').toLowerCase();
+
+            const isPhoto = artworkType.includes('photograph') ||
+                           technique.includes('photograph') ||
+                           medium.includes('photograph') ||
+                           medium.includes('gelatin silver') ||
+                           medium.includes('albumen');
+
+            // Exclude photography unless specifically requested
+            if (isPhoto && filters.medium !== 'photographs') return null;
+
+            // Calculate priority score
+            let year = null;
+            if (obj.creation_date_latest) {
+                year = obj.creation_date_latest;
+            } else if (obj.creation_date_earliest) {
+                year = obj.creation_date_earliest;
+            } else if (obj.creation_date) {
+                year = extractYear(obj.creation_date);
+            }
+
+            let priorityScore;
+            if (!year) {
+                if (isPhoto) return null; // Exclude undated photography
+                priorityScore = 60 + Math.random() * 15; // Undated fine art - slight deboost
+            } else if (year > 2000) {
+                priorityScore = 200 + Math.random() * 100;
+            } else if (year > 1980) {
+                priorityScore = 100 + Math.random() * 50;
+            } else if (year > 1900) {
+                priorityScore = 40 + Math.random() * 20;
+            } else {
+                const ageFactor = Math.max(0, (1900 - year) / 100);
+                priorityScore = Math.random() * 30 + Math.max(0, 10 - ageFactor * 10);
+            }
+
+            // Extract artist name
+            let artistName = 'Unknown Artist';
+            if (obj.creators && obj.creators.length > 0) {
+                artistName = obj.creators[0].description || obj.creators[0].name || 'Unknown Artist';
+            }
+
+            return {
+                priorityScore,
+                uniqueId: `cleveland_${obj.id}`,
+                source: 'cleveland',
+                sourceUrl: obj.url || `https://www.clevelandart.org/art/${obj.id}`,
+                imageUrl: obj.images.web.url,
+                thumbnailUrl: obj.images.web.url,
+                title: obj.title || 'Untitled',
+                artist: artistName,
+                artistNationality: obj.culture ? obj.culture[0] : null,
+                artistDates: null,
+                artistBio: null,
+                date: obj.creation_date || null,
+                medium: obj.medium || obj.technique || null,
+                dimensions: obj.dimensions ? obj.dimensions.framed || obj.dimensions.unframed : null,
+                classification: obj.type || null,
+                department: obj.department || null,
+                culture: obj.culture ? obj.culture.join(', ') : null,
+                period: null,
+                dynasty: obj.dynasty || null,
+                creditLine: obj.creditline || null,
+                geographyType: null,
+                city: null,
+                country: null,
+                region: null,
+                repository: 'Cleveland Museum of Art',
+                accessionNumber: obj.accession_number || null,
+                isPublicDomain: true
+            };
+        }
+
+        // ===== Background Buffer System =====
+        let bufferFetchInterval = null;
+        let activeFetches = 0;
+        const MAX_CONCURRENT_FETCHES = 3; // With 4 APIs we can be slightly more aggressive
+
+        // Start continuous background fetching
+        function startBackgroundFetching() {
+            // Show the buffer indicator
+            updateBufferIndicator();
+
+            // Initial fetch - staggered to avoid rate limiting
+            fillExploreBuffer();
+            setTimeout(() => fillExploreBuffer(), 1000);
+
+            // Keep fetching continuously with reasonable interval
+            bufferFetchInterval = setInterval(() => {
+                if (state.currentTab === 'explore') {
+                    const bufferSize = state.exploreBuffer.length;
+
+                    // Only fetch if buffer is low and not already fetching
+                    if (bufferSize < state.bufferTarget && activeFetches < MAX_CONCURRENT_FETCHES) {
+                        fillExploreBuffer();
+                    }
+
+                    // Update indicator periodically
+                    updateBufferIndicator();
+                }
+            }, 2000); // Check every 2 seconds to avoid overwhelming API
+        }
+
+        // Fetch artworks into the buffer (background process)
+        async function fillExploreBuffer() {
+            if (activeFetches >= MAX_CONCURRENT_FETCHES) return;
+
+            activeFetches++;
+
+            try {
+                // Fetch from all available sources in parallel
+                // This distributes load across APIs and reduces rate limit risk
+                const fetchPromises = [];
+                const countPerSource = 6; // Smaller batches from each source
+
+                if (apiAvailability.met) {
+                    fetchPromises.push(
+                        fetchMetArtworks(countPerSource).catch(e => {
+                            console.warn('Met API failed:', e);
+                            apiAvailability.met = false;
+                            return [];
+                        })
+                    );
+                }
+
+                if (apiAvailability.aic) {
+                    fetchPromises.push(
+                        fetchAICArtworks(countPerSource).catch(e => {
+                            console.warn('AIC API failed:', e);
+                            apiAvailability.aic = false;
+                            return [];
+                        })
+                    );
+                }
+
+                if (apiAvailability.cleveland) {
+                    fetchPromises.push(
+                        fetchClevelandArtworks(countPerSource).catch(e => {
+                            console.warn('Cleveland API failed:', e);
+                            apiAvailability.cleveland = false;
+                            return [];
+                        })
+                    );
+                }
+
+                if (apiAvailability.wikimedia) {
+                    fetchPromises.push(
+                        fetchWikimediaArtworks(countPerSource).catch(e => {
+                            console.warn('Wikimedia API failed:', e);
+                            apiAvailability.wikimedia = false;
+                            return [];
+                        })
+                    );
+                }
+
+                // Wait for all fetches to complete
+                const results = await Promise.all(fetchPromises);
+
+                // Combine all results and filter duplicates
+                const combined = results.flat();
+                const newArtworks = combined.filter(a => a && !isDuplicate(a, state.seenIds));
+
+                // Sort by priority (older art first) with some randomization within priority bands
+                newArtworks.sort((a, b) => {
+                    // Group into priority bands of 20 points
+                    const scoreA = a.priorityScore || 50;
+                    const scoreB = b.priorityScore || 50;
+                    const bandA = Math.floor(scoreA / 20);
+                    const bandB = Math.floor(scoreB / 20);
+                    if (bandA !== bandB) {
+                        return bandA - bandB;
+                    }
+                    // Within same band, randomize
+                    return Math.random() - 0.5;
+                });
+
+                // Add to buffer
+                state.exploreBuffer.push(...newArtworks);
+
+                // Update visual indicator
+                updateBufferIndicator();
+
+            } catch (error) {
+                console.error('Error filling buffer:', error);
+            } finally {
+                activeFetches--;
+            }
+        }
+
+        // Stop background fetching (when switching tabs)
+        function stopBackgroundFetching() {
+            if (bufferFetchInterval) {
+                clearInterval(bufferFetchInterval);
+                bufferFetchInterval = null;
+            }
+            updateBufferIndicator();
+        }
+
+        // Update the scroll loading indicator with phrase and buffer count
+        function showScrollLoading(type = 'explore') {
+            const prefix = type === 'explore' ? 'explore' : 'search';
+            const scrollLoadingEl = document.getElementById(`${prefix}ScrollLoading`);
+            const phraseEl = document.getElementById(`${prefix}LoadingPhrase`);
+            const countEl = document.getElementById(`${prefix}ScrollCount`);
+            const barFillEl = document.getElementById(`${prefix}ScrollBarFill`);
+
+            // Set random phrase
+            phraseEl.textContent = getRandomLoadingPhrase();
+
+            // Update buffer count and bar
+            const bufferSize = type === 'explore' ? state.exploreBuffer.length : state.searchBuffer.length;
+            const target = state.bufferTarget;
+
+            countEl.textContent = bufferSize;
+            const fillPercent = Math.min(100, (bufferSize / target) * 100);
+            barFillEl.style.width = `${fillPercent}%`;
+
+            scrollLoadingEl.style.display = 'flex';
+
+            // Start interval to update count while loading
+            return setInterval(() => {
+                const currentBuffer = type === 'explore' ? state.exploreBuffer.length : state.searchBuffer.length;
+                countEl.textContent = currentBuffer;
+                const currentFill = Math.min(100, (currentBuffer / target) * 100);
+                barFillEl.style.width = `${currentFill}%`;
+            }, 200);
+        }
+
+        function hideScrollLoading(type = 'explore', intervalId = null) {
+            const prefix = type === 'explore' ? 'explore' : 'search';
+            const scrollLoadingEl = document.getElementById(`${prefix}ScrollLoading`);
+            scrollLoadingEl.style.display = 'none';
+
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        }
+
+        // Update the visual buffer indicator
+        function updateBufferIndicator() {
+            const indicator = document.getElementById('bufferIndicator');
+            const countEl = document.getElementById('bufferCount');
+            const fillEl = document.getElementById('bufferFill');
+
+            if (state.currentTab !== 'explore') {
+                indicator.style.display = 'none';
+                return;
+            }
+
+            indicator.style.display = 'flex';
+
+            const bufferSize = state.exploreBuffer.length;
+            countEl.textContent = bufferSize;
+
+            // Fill percentage based on target
+            const fillPercent = Math.min(100, (bufferSize / state.bufferTarget) * 100);
+            fillEl.style.width = `${fillPercent}%`;
+
+            // Show fetching animation
+            if (activeFetches > 0) {
+                indicator.classList.add('fetching');
+            } else {
+                indicator.classList.remove('fetching');
+            }
+        }
+
+        // ===== Loading Functions =====
+        async function loadExploreArtworks(append = false) {
+            const loadingEl = document.getElementById('exploreLoading');
+            const scrollLoadingEl = document.getElementById('exploreScrollLoading');
+            const grid = document.getElementById('exploreGrid');
+
+            if (!append) {
+                // Initial load - show loading indicator
+                loadingEl.style.display = 'flex';
+                grid.innerHTML = '';
+                state.exploreArtworks = [];
+                state.exploreBuffer = [];
+                state.seenIds = new Set();
+
+                // Fetch initial batch from all sources in parallel
+                try {
+                    const countPerSource = 8;
+
+                    // Fetch from all sources in parallel for faster initial load
+                    const [metArtworks, aicArtworks, clevelandArtworks, wikiArtworks] = await Promise.all([
+                        fetchMetArtworks(countPerSource).catch(e => {
+                            console.warn('Met API failed on initial load:', e);
+                            apiAvailability.met = false;
+                            return [];
+                        }),
+                        fetchAICArtworks(countPerSource).catch(e => {
+                            console.warn('AIC API failed on initial load:', e);
+                            apiAvailability.aic = false;
+                            return [];
+                        }),
+                        fetchClevelandArtworks(countPerSource).catch(e => {
+                            console.warn('Cleveland API failed on initial load:', e);
+                            apiAvailability.cleveland = false;
+                            return [];
+                        }),
+                        fetchWikimediaArtworks(countPerSource).catch(e => {
+                            console.warn('Wikimedia failed on initial load:', e);
+                            apiAvailability.wikimedia = false;
+                            return [];
+                        })
+                    ]);
+
+                    // Combine all sources, filter duplicates, and sort by priority
+                    const combined = [...metArtworks, ...aicArtworks, ...clevelandArtworks, ...wikiArtworks];
+                    const newArtworks = combined
+                        .filter(a => a && !isDuplicate(a, state.seenIds))
+                        .sort((a, b) => {
+                            // Group into priority bands for some variety
+                            const scoreA = a.priorityScore || 50;
+                            const scoreB = b.priorityScore || 50;
+                            const bandA = Math.floor(scoreA / 20);
+                            const bandB = Math.floor(scoreB / 20);
+                            if (bandA !== bandB) return bandA - bandB;
+                            return Math.random() - 0.5;
+                        });
+
+                    state.exploreArtworks = newArtworks;
+                    renderExploreGrid();
+
+                    // Start background fetching to fill buffer
+                    startBackgroundFetching();
+
+                } catch (error) {
+                    console.error('Error loading artworks:', error);
+                    showToast('Error loading artworks. Please try again.');
+                } finally {
+                    loadingEl.style.display = 'none';
+                }
+            } else {
+                // Append from buffer - this should be instant!
+                if (state.exploreBuffer.length > 0) {
+                    // Take items from buffer
+                    const toShow = state.exploreBuffer.splice(0, state.displayBatchSize);
+                    state.exploreArtworks.push(...toShow);
+                    renderExploreGrid();
+                } else {
+                    // Buffer empty - show enhanced loading and wait for fetch
+                    const updateInterval = showScrollLoading('explore');
+
+                    // Wait for buffer to have items (with timeout)
+                    let waited = 0;
+                    while (state.exploreBuffer.length === 0 && waited < 5000) {
+                        await new Promise(r => setTimeout(r, 200));
+                        waited += 200;
+                    }
+
+                    if (state.exploreBuffer.length > 0) {
+                        const toShow = state.exploreBuffer.splice(0, state.displayBatchSize);
+                        state.exploreArtworks.push(...toShow);
+                        renderExploreGrid();
+                    }
+
+                    hideScrollLoading('explore', updateInterval);
+                }
+            }
+
+            return Promise.resolve();
+        }
+
+        async function performSearch(append = false) {
+            if (state.isLoading) return;
+
+            const searchInput = document.getElementById('searchInput');
+            const mediumFilter = document.getElementById('mediumFilter');
+            const periodFilter = document.getElementById('periodFilter');
+            const styleFilter = document.getElementById('styleFilter');
+            const sourceFilter = document.getElementById('sourceFilter');
+
+            const query = searchInput.value.trim();
+            const filters = {
+                medium: mediumFilter.value,
+                period: periodFilter.value,
+                style: styleFilter.value,
+                source: sourceFilter.value
+            };
+
+            // Store current search params for infinite scroll
+            state.currentSearchQuery = query;
+            state.currentSearchFilters = filters;
+
+            state.isLoading = true;
+            const loadingEl = document.getElementById('searchLoading');
+            const searchBtn = document.getElementById('searchBtn');
+            const statusEl = document.getElementById('searchStatus');
+            const errorEl = document.getElementById('searchError');
+            const grid = document.getElementById('searchGrid');
+
+            searchBtn.disabled = true;
+            errorEl.style.display = 'none';
+
+            let scrollUpdateInterval = null;
+            if (append) {
+                scrollUpdateInterval = showScrollLoading('search');
+            } else {
+                loadingEl.style.display = 'flex';
+                grid.innerHTML = '';
+                state.searchArtworks = [];
+                state.searchSeenIds = new Set();
+            }
+
+            try {
+                // Fetch from all available sources in parallel
+                const fetchPromises = [];
+                const countPerSource = Math.ceil(BATCH_SIZE / 4);
+
+                // Only fetch from selected source if specified, otherwise fetch from all
+                const sourceFilter = filters.source;
+
+                if ((!sourceFilter || sourceFilter === 'met') && apiAvailability.met) {
+                    fetchPromises.push(
+                        fetchMetArtworks(sourceFilter ? BATCH_SIZE : countPerSource, query, filters)
+                            .catch(e => { apiAvailability.met = false; return []; })
+                    );
+                }
+
+                if ((!sourceFilter || sourceFilter === 'aic') && apiAvailability.aic) {
+                    fetchPromises.push(
+                        fetchAICArtworks(sourceFilter ? BATCH_SIZE : countPerSource, query, filters)
+                            .catch(e => { apiAvailability.aic = false; return []; })
+                    );
+                }
+
+                if ((!sourceFilter || sourceFilter === 'cleveland') && apiAvailability.cleveland) {
+                    fetchPromises.push(
+                        fetchClevelandArtworks(sourceFilter ? BATCH_SIZE : countPerSource, query, filters)
+                            .catch(e => { apiAvailability.cleveland = false; return []; })
+                    );
+                }
+
+                // Wikimedia: fine art only (no photos unless photos filter not set)
+                if ((!sourceFilter || sourceFilter === 'wikimedia') && apiAvailability.wikimedia && filters.medium !== 'photographs') {
+                    fetchPromises.push(
+                        fetchWikimediaArtworks(sourceFilter ? BATCH_SIZE : countPerSource, query, filters)
+                            .catch(e => { apiAvailability.wikimedia = false; return []; })
+                    );
+                }
+
+                const results = await Promise.all(fetchPromises);
+
+                // Combine, filter duplicates, and sort by priority
+                const combined = results.flat();
+                const newArtworks = combined
+                    .filter(a => a && !isDuplicate(a, state.searchSeenIds))
+                    .sort((a, b) => {
+                        const scoreA = a.priorityScore || 50;
+                        const scoreB = b.priorityScore || 50;
+                        const bandA = Math.floor(scoreA / 20);
+                        const bandB = Math.floor(scoreB / 20);
+                        if (bandA !== bandB) return bandA - bandB;
+                        return Math.random() - 0.5;
+                    });
+
+                if (append) {
+                    state.searchArtworks = [...state.searchArtworks, ...newArtworks];
+                } else {
+                    state.searchArtworks = newArtworks;
+                }
+
+                const totalResults = state.searchArtworks.length;
+                statusEl.textContent = totalResults > 0
+                    ? `Found ${totalResults} artwork${totalResults !== 1 ? 's' : ''}`
+                    : '';
+
+                renderSearchGrid();
+            } catch (error) {
+                console.error('Error searching:', error);
+                errorEl.textContent = 'Error searching. Please try again.';
+                errorEl.style.display = 'block';
+            } finally {
+                state.isLoading = false;
+                loadingEl.style.display = 'none';
+                hideScrollLoading('search', scrollUpdateInterval);
+                searchBtn.disabled = false;
+            }
+        }
+
+        // Continue loading more search results
+        async function loadMoreSearchResults() {
+            if (state.isLoading || state.searchArtworks.length === 0) {
+                return Promise.resolve();
+            }
+            return performSearch(true);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('mediumFilter').value = '';
+            document.getElementById('periodFilter').value = '';
+            document.getElementById('styleFilter').value = '';
+            document.getElementById('sourceFilter').value = '';
+            document.getElementById('searchStatus').textContent = '';
+            document.getElementById('searchError').style.display = 'none';
+            state.searchArtworks = [];
+            state.searchSeenIds = new Set();
+            renderSearchGrid();
+        }
+
+        // ===== Event Listeners =====
+        function initEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Search
+            document.getElementById('searchBtn').addEventListener('click', () => performSearch());
+            document.getElementById('clearBtn').addEventListener('click', clearSearch);
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+
+            // Infinite scroll
+            initInfiniteScroll();
+        }
+
+        // ===== Infinite Scroll =====
+        let lastScrollTop = 0;
+        let isAddingMore = false;
+
+        function initInfiniteScroll() {
+            window.addEventListener('scroll', handleScroll, { passive: true });
+        }
+
+        function handleScroll() {
+            const scrollTop = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            // Only trigger when scrolling DOWN
+            const isScrollingDown = scrollTop > lastScrollTop;
+            lastScrollTop = scrollTop;
+
+            if (!isScrollingDown) return;
+
+            // Load more when user is within 2500px of the bottom (earlier trigger)
+            const distanceFromBottom = documentHeight - (scrollTop + windowHeight);
+
+            if (distanceFromBottom < 2500) {
+                triggerLoadMore();
+            }
+        }
+
+        function triggerLoadMore() {
+            if (isAddingMore) return;
+
+            if (state.currentTab === 'explore') {
+                // For explore, pull from buffer (instant)
+                if (state.exploreBuffer.length > 0) {
+                    isAddingMore = true;
+                    const toShow = state.exploreBuffer.splice(0, state.displayBatchSize);
+                    state.exploreArtworks.push(...toShow);
+                    renderExploreGrid();
+                    updateBufferIndicator();
+                    // Small delay to prevent too rapid additions
+                    setTimeout(() => { isAddingMore = false; }, 100);
+                } else if (activeFetches === 0) {
+                    // Buffer empty and not fetching - trigger a fetch
+                    fillExploreBuffer();
+                }
+            } else if (state.currentTab === 'search' && state.searchArtworks.length > 0) {
+                if (!state.isLoading) {
+                    isAddingMore = true;
+                    loadMoreSearchResults().finally(() => {
+                        setTimeout(() => { isAddingMore = false; }, 100);
+                    });
+                }
+            }
+        }
+
+        // ===== Initialization =====
+        async function init() {
+            // Clear old cache entries on startup
+            clearOldCache();
+
+            initTheme();
+            initEventListeners();
+
+            // Periodically retry unavailable APIs
+            setInterval(() => {
+                Object.keys(apiAvailability).forEach(api => {
+                    if (!apiAvailability[api]) {
+                        console.log(`Retrying ${api} API availability...`);
+                        apiAvailability[api] = true; // Will be set back to false if it fails again
+                    }
+                });
+            }, 60000); // Retry every 60 seconds
+
+            // Load initial explore content
+            await loadExploreArtworks();
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
